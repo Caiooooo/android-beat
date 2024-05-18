@@ -1,0 +1,4 @@
+<style name="MyPopupStyle" parent="Widget.AppCompat.PopupMenu">
+    <item name="android:itemBackground">@drawable/cat_bar</item>
+    <item name="android:textColor">@color/whitesmoke</item>
+</style>

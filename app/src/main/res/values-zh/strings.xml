@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">简单节拍器</string>
+    <string name="start">start</string>
+    <string name="stop">stop</string>
+    <string name="bpm">BPM</string>
+    <string name="about">关于</string>
+    <string name="show_ticks">显示计数</string>
+    <string name="hidden_ticks">隐藏计数</string>
+    <string name="source_code">源代码</string>
+    <string name="ok">确定</string>
+    <string name="keep_screen_on">打开屏幕常亮</string>
+    <string name="keep_screen_off">关闭屏幕常亮</string>
+    <string name="sound_booster">音量增强</string>
+    <string name="sound_booster_on">打开音量增强</string>
+    <string name="sound_booster_off">关闭音量增强</string>
+    <string name="timer_setting">设置定时器</string>
+    <string name="cancel">取消</string>
+</resources>

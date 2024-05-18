@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="MyPopupMenuStyle" parent="@android:style/Widget.PopupMenu">
+<!--        <item name="android:popupMenuStyle">@menu/popup_menu</item>-->
+<!--        <item name="android:textColor">@color/white</item>-->
+        <item name="android:itemBackground">@drawable/my_popupmune_background</item>
+        <item name="android:textColor">@color/white</item>
+
+    </style>
+</resources>
