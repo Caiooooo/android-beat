@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:id="@+id/main_layout"
-    android:background="@mipmap/home"
+    android:background="@mipmap/home_day"
     tools:context=".MetronomeActivity">
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -53,6 +53,7 @@
     <com.madao.simplebeat.BpmPicker
         android:id="@+id/BpmPicker"
         android:layout_width="match_parent"
+        android:background="@color/empty"
         android:layout_height="132dp"
         app:layout_constraintBottom_toTopOf="@+id/AudioSelector"
         app:layout_constraintEnd_toEndOf="parent"

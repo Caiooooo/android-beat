@@ -2,17 +2,25 @@ package com.madao.simplebeat;
 
 import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
+import android.content.ComponentName;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
+import android.content.res.Configuration;
+import android.database.Cursor;
 import android.graphics.drawable.AnimatedVectorDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Looper;
+import android.util.Log;
 import android.view.ContextThemeWrapper;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -26,14 +34,15 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
 
 import java.io.IOException;
 import java.io.InputStream;
 
-public class MetronomeActivity extends AppCompatActivity {
+public class MetronomeActivity extends AppCompatActivity implements MyReceiver.OnNightModeChangedListener{
 
     enum MenusType {
-        MenuStatusBar, MenuKeepScreen, MenuSoundBooster, MenuTimerSetting, MenuAbout
+        MenuStatusBar, MenuKeepScreen, MenuSoundBooster, MenuTimerSetting, MenuSaveSetting, MenuUseSetting,  MenuAbout
     }
 
     private Metronome metronome;
@@ -50,6 +59,11 @@ public class MetronomeActivity extends AppCompatActivity {
 
     private long timeCounter = 0;
     private Handler mHandler;
+    private MyReceiver myReceiver;
+    private MyProvider provider;
+
+    private AppFrontBackHelper helper;
+    private backStageService _backStageService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,7 +86,46 @@ public class MetronomeActivity extends AppCompatActivity {
             return false;
         });
 
+        // 判断前后台
+        helper = new AppFrontBackHelper();
+        helper.register(this.getApplication(), new AppFrontBackHelper.OnAppStatusListener() {
+            Intent intent = new Intent(MetronomeActivity.this, backStageService.class);
+
+            @Override
+            public void onFront() {
+                Log.d("MainActivity","stop");
+                stopService(intent);
+            }
+
+            @Override
+            public void onBack() {
+                if(isPlaying) {
+                    //播放音乐
+                    backStageService.setNumber(profile.getBPM(), profile.getAudioKey());
+                    startService(intent);
+                }
+            }
+        });
+
         audioInitPosition = audioManager.getPosition(profile.getAudioKey());
+
+        // 初始化广播接收器 动态注册广播接收器
+        myReceiver = new MyReceiver();
+        myReceiver.setOnNightModeChangedListener(this);
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(Intent.ACTION_CONFIGURATION_CHANGED);
+        registerReceiver(myReceiver, filter);
+
+        provider = new MyProvider(this);
+
+        //如果为夜间模式
+        Configuration config = this.getResources().getConfiguration();
+        int nightMode = config.uiMode & Configuration.UI_MODE_NIGHT_MASK;
+        if (nightMode == Configuration.UI_MODE_NIGHT_YES) {
+            setContentView(R.layout.activity_metronome);
+        }else{
+            setContentView(R.layout.activity_metronome_day);
+        }
 
         initStatusBar();
         initBpmPicker();
@@ -81,11 +134,8 @@ public class MetronomeActivity extends AppCompatActivity {
     }
 
     private void resetMetronome() {
-//        isPlaying = false;
-//        ImageButton view = findViewById(R.id.startButton);
-//        ((AnimatedVectorDrawable) (view).getDrawable()).reset();
 
-        metronome = new Metronome(mHandler);
+        metronome = new Metronome(mHandler, this);
         metronome.setBpm(profile.getBPM());
         metronome.setBooster(soundBooster);
         metronome.start();
@@ -124,6 +174,22 @@ public class MetronomeActivity extends AppCompatActivity {
             metronome.setBpm(newVal);
             profile.setBpm(newVal);
         });
+    }
+    private void initBpmPicker(int bpm) {
+        BpmPicker bpmPicker = findViewById(R.id.BpmPicker);
+        bpmPicker.setValue(bpm);
+
+        bpmPicker.setOnValueChangedListener((oldVal, newVal) -> {
+            metronome.setBpm(newVal);
+            profile.setBpm(newVal);
+        });
+    }
+
+//    @Override
+    public void onNightModeChanged() {
+        finish();
+        Intent intent = new Intent(this, MetronomeActivity.class);
+        startActivity(intent);
     }
 
     private void initAudioSelector() {
@@ -266,6 +332,8 @@ public class MetronomeActivity extends AppCompatActivity {
                 case MenuKeepScreen -> toggleKeepScreen();
                 case MenuSoundBooster -> toggleSoundBooster();
                 case MenuTimerSetting -> showTimerSetting();
+                case MenuSaveSetting -> saveSetting();
+                case MenuUseSetting -> useSetting();
                 case MenuAbout -> showAbout();
                 default ->
                         throw new IllegalStateException("Unexpected value: " + MenusType.values()[item.getItemId()]);
@@ -277,10 +345,8 @@ public class MetronomeActivity extends AppCompatActivity {
 
         if (showStatusBar) {
             MenuItem item = menu.add(1,  MenusType.MenuStatusBar.ordinal(), 1, R.string.hidden_ticks);
-//            item.setIcon(background);
         } else {
             MenuItem item = menu.add(1, MenusType.MenuStatusBar.ordinal(), 1, R.string.show_ticks);
-//            item.setIcon(R.xml.styles);
         }
 
         if (isKeepScreen) {
@@ -295,11 +361,34 @@ public class MetronomeActivity extends AppCompatActivity {
             menu.add(1, MenusType.MenuSoundBooster.ordinal(), 1, R.string.sound_booster_on);
         }
 
+        menu.add(1, MenusType.MenuSaveSetting.ordinal(), 1, R.string.save_setting);
+        menu.add(1, MenusType.MenuUseSetting.ordinal(), 1, R.string.use_setting);
+
         menu.add(1, MenusType.MenuTimerSetting.ordinal(), 1, R.string.timer_setting);
 
         menu.add(1, MenusType.MenuAbout.ordinal(), 1, R.string.about);
         popupMenu.show();
     }
+
+
+
+    private void saveSetting(){
+        Uri uri = Uri.parse("content://com.madao.simplebeat.provider/my_table");
+        ContentValues values = new ContentValues();
+        values.put("bpm", profile.getBPM());
+        values.put("sound", profile.getAudioKey());
+        provider.update(uri, values, null, null);
+    }
+    private void useSetting(){
+        int bpm = provider.getBPM();
+        String sound = provider.getSound();
+
+        audioInitPosition = audioManager.getPosition(sound);
+        initAudioSelector();
+        initBpmPicker(bpm);
+    }
+
+
 
     private void showAbout() {
         String title = getString(R.string.app_name);
@@ -383,5 +472,7 @@ public class MetronomeActivity extends AppCompatActivity {
         super.onDestroy();
         profile.setKeepScreen(isKeepScreen);
         metronome.close();
+        unregisterReceiver(myReceiver);
+        helper.unRegister(this.getApplication());
     }
 }

@@ -1,9 +1,13 @@
 package com.madao.simplebeat;
 
+
+import android.content.Context;
+import android.hardware.SensorManager;
 import android.media.AudioAttributes;
 import android.media.AudioFormat;
 import android.media.AudioTrack;
 import android.os.Handler;
+import android.os.Vibrator;
 import android.util.Log;
 
 import java.util.Arrays;
@@ -28,11 +32,14 @@ public class Metronome extends Thread {
 
 	private byte[] upbeat;
 	private byte[] downbeat;
+
+	private Vibrator vibrator;
 	
-	public Metronome(Handler handler) {
+	public Metronome(Handler handler, Context context) {
 		setDaemon(true);
 		this.mHandler = handler;
 		tickCount = 0;
+		vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
 		createPlayer();
 	}
 
@@ -76,6 +83,7 @@ public class Metronome extends Thread {
 		return target;
 	}
 
+	//这个函数用于创建音频流
 	private void generateSection() {
 		// default sampleRate 44100Hz 16 bit
 		int total = (int) (Constant.SampleRate * 2 * 60 * notes * 1f / bpm);
@@ -108,16 +116,16 @@ public class Metronome extends Thread {
 	}
 
 	private void pushAudioStream() {
+
+
+		long[] pattern = {400, 170}; // 第一个元素为延迟时间，第二个元素为持续时间
+		vibrator.vibrate(pattern, -1); // -1 表示不重复振动
 		audioTrack.write(wave, 0, wave.length);
+
+
 		tickCount += notes;
 		long endTime = System.currentTimeMillis();
 		mHandler.sendMessage(Messages.TickTime((int)(endTime - startTime), tickCount));
-//		int offset = 0;
-//		while (offset < wave.length) {
-//			int end = Math.min(wave.length - offset, Constant.SampleRate);
-//			audioTrack.write(wave, offset, end);
-//			offset += sampleRate;
-//		}
 	}
 
 	@Override
@@ -129,6 +137,7 @@ public class Metronome extends Thread {
 					generateSection();
 				}
 				pushAudioStream();
+
 			} else {
 				try {
 					Thread.sleep(10);
