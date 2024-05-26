@@ -13,6 +13,7 @@ import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.content.res.Configuration;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.drawable.AnimatedVectorDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
@@ -64,6 +65,8 @@ public class MetronomeActivity extends AppCompatActivity implements MyReceiver.O
 
     private AppFrontBackHelper helper;
     private backStageService _backStageService;
+    private DatabaseHelper databaseHelper;
+    private SQLiteDatabase database;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -117,6 +120,11 @@ public class MetronomeActivity extends AppCompatActivity implements MyReceiver.O
         registerReceiver(myReceiver, filter);
 
         provider = new MyProvider(this);
+
+        //创建数据库
+        databaseHelper = new DatabaseHelper(this);
+        SQLiteDatabase database = databaseHelper.getWritableDatabase();
+        provider.setDatabase(database);
 
         //如果为夜间模式
         Configuration config = this.getResources().getConfiguration();
