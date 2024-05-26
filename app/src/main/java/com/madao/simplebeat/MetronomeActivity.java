@@ -185,8 +185,8 @@ public class MetronomeActivity extends AppCompatActivity implements MyReceiver.O
     }
     private void initBpmPicker(int bpm) {
         BpmPicker bpmPicker = findViewById(R.id.BpmPicker);
+        Log.d("MainActivity", ""+bpm);
         bpmPicker.setValue(bpm);
-
         bpmPicker.setOnValueChangedListener((oldVal, newVal) -> {
             metronome.setBpm(newVal);
             profile.setBpm(newVal);

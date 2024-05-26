@@ -118,7 +118,7 @@ public class Metronome extends Thread {
 	private void pushAudioStream() {
 
 
-		long[] pattern = {400, 170}; // 第一个元素为延迟时间，第二个元素为持续时间
+		long[] pattern = {4000/bpm, 170}; // 第一个元素为延迟时间，第二个元素为持续时间
 		vibrator.vibrate(pattern, -1); // -1 表示不重复振动
 		audioTrack.write(wave, 0, wave.length);
 

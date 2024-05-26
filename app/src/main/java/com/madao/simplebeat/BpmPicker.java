@@ -28,8 +28,13 @@ public class BpmPicker extends RecyclerView {
     };
 
     public void setValue(int v) {
+        if(v>mValue)
+            scrollToPosition(v - MinBPM + 2);
+        else
+            scrollToPosition(v-MinBPM);
         mValue = v;
-        scrollToPosition(mValue - MinBPM);
+
+
     }
 
     public void setOnValueChangedListener(OnValueChangeListener listener) {
