@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/simplebeat.iml" filepath="$PROJECT_DIR$/.idea/modules/simplebeat.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/simplebeat.app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/simplebeat.app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/simplebeat.app.androidTest.iml" filepath="$PROJECT_DIR$/.idea/modules/app/simplebeat.app.androidTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/simplebeat.app.main.iml" filepath="$PROJECT_DIR$/.idea/modules/app/simplebeat.app.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/simplebeat.app.unitTest.iml" filepath="$PROJECT_DIR$/.idea/modules/app/simplebeat.app.unitTest.iml" />
+    </modules>
+  </component>
+</project>
