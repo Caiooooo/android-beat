@@ -1,9 +1,9 @@
 plugins {
     id 'com.android.application'
 }
-
-def cmd = 'git rev-list HEAD --count'
-def gitVersion = cmd.execute().text.trim().toInteger()
+//
+//def cmd = 'git rev-list HEAD --count'
+//def gitVersion = cmd.execute().text.trim().toInteger()
 
 android {
     namespace "com.madao.simplebeat"
@@ -13,8 +13,8 @@ android {
         applicationId "com.madao.simplebeat"
         minSdkVersion 23
         targetSdkVersion 33
-        versionCode gitVersion
-        versionName "1." + gitVersion
+//        versionCode gitVersion
+//        versionName "1." + gitVersion
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
